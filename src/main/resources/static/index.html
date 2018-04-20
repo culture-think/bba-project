@@ -1,0 +1,142 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>BBA Project Management</title>
+    <link rel="stylesheet" href="wing.min.css"/>
+    <style>
+        input[type=number] {
+            width: 100%;
+            padding: 12px 20px;
+            margin: 8px 0;
+            display: inline-block;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            -webkit-transition: .5s;
+            transition: .5s;
+            outline: 0;
+            font-family: 'Open Sans', serif;
+        }
+    </style>
+    <!-- Load AngularJS -->
+    <script src="angular.min.js"></script>
+    
+    <script type="text/javascript">
+      var app = angular.module("ProjectManagement", []);
+
+      //Controller Part
+      app.controller("ProjectManagementController", function ($scope, $http) {
+
+        //Initialize page with default data which is blank in this example
+        $scope.projects = [];
+
+        $scope.form = {
+          id: -1,
+          name: ""
+        };
+
+        //Now load the data from server
+        _refreshPageData();
+
+        //HTTP POST/PUT methods for add/edit projects
+        $scope.update = function () {
+          var method = "";
+          var url = "";
+          var data = {};
+          if ($scope.form.id == -1) {
+            //Id is absent so add projects - POST operation
+            method = "POST";
+            url = '/api/projects';
+            data.name = $scope.form.name;
+          } else {
+            //If Id is present, it's edit operation - PUT operation
+            method = "PUT";
+            url = '/api/projects/' + $scope.form.id;
+            data.name = $scope.form.name;
+          }
+
+          $http({
+            method: method,
+            url: url,
+            data: angular.toJson(data),
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          }).then(_success, _error);
+        };
+
+        //HTTP DELETE- delete project by id
+        $scope.remove = function (project) {
+          $http({
+            method: 'DELETE',
+            url: '/api/projects/' + project.id
+          }).then(_success, _error);
+        };
+
+        //In case of edit projects, populate form with project data
+        $scope.edit = function (project) {
+          $scope.form.name = project.name;
+          $scope.form.id = project.id;
+        };
+
+          /* Private Methods */
+        //HTTP GET- get all projects collection
+        function _refreshPageData() {
+          $http({
+            method: 'GET',
+            url: '/api/projects'
+          }).then(function successCallback(response) {
+            $scope.projects = response.data;
+          }, function errorCallback(response) {
+            console.log(response.statusText);
+          });
+        }
+
+        function _success(response) {
+          _refreshPageData();
+          _clearForm()
+        }
+
+        function _error(response) {
+          console.error(response.statusText);
+        }
+
+        //Clear the form
+        function _clearForm() {
+          $scope.form.name = "";
+          $scope.form.id = -1;
+        }
+      });
+    </script>
+</head>
+<body ng-app="ProjectManagement" ng-controller="ProjectManagementController">
+
+<div class="container">
+    <h1>BBA Project Management</h1>
+    <p>
+        This application demonstrates how a Spring Boot application implements a CRUD endpoint to manage <em>projects</em>.
+        This management interface invokes the CRUD service endpoint, that interact with a PosgreSQL database using JDBC.
+    </p>
+
+    <h3>Add/Edit a project</h3>
+    <form ng-submit="update()">
+        <div class="row">
+            <div class="col-6"><input type="text" placeholder="Name" ng-model="form.name" size="60"/></div>
+        </div>
+        <input type="submit" value="Save"/>
+    </form>
+
+    <h3>Project List</h3>
+    <div class="row">
+        <div class="col-2">Name</div>
+    </div>
+    <div class="row" ng-repeat="project in projects">
+        <div class="col-2">{{ project.name }}</div>
+        <div class="col-8"><a ng-click="edit( project )" class="btn">Edit</a> <a ng-click="remove( project )" class="btn">Remove</a>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
