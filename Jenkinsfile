@@ -6,7 +6,7 @@ pipeline {
     
   }
   stages {
-    stage('Deploy') {
+    stage('Deploy &  Test') {
       steps {
         sh 'mvn fabric8:deploy -Popenshift -DskipTests'
       }
