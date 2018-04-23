@@ -11,7 +11,7 @@ pipeline {
         sh 'mvn clean'
       }
     }
-    stage('Deploy & Test') {
+    stage('Deploy') {
       steps {
         sh 'mvn fabric8:deploy -Popenshift -DskipTests'
       }
